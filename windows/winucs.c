@@ -390,6 +390,7 @@ struct cp_list_item {
 };
 
 static const struct cp_list_item cp_list[] = {
+    /*
     {"ISO-8859-1:1998 (Latin-1, West Europe)", 0, 96, iso_8859_1},
     {"ISO-8859-2:1999 (Latin-2, East Europe)", 0, 96, iso_8859_2},
     {"ISO-8859-3:1999 (Latin-3, South Europe)", 0, 96, iso_8859_3},
@@ -405,9 +406,9 @@ static const struct cp_list_item cp_list[] = {
     {"ISO-8859-14:1998 (Latin-8, Celtic)", 0, 96, iso_8859_14},
     {"ISO-8859-15:1999 (Latin-9, \"euro\")", 0, 96, iso_8859_15},
     {"ISO-8859-16:2001 (Latin-10, Balkan)", 0, 96, iso_8859_16},
-
-    {"UTF-8", CP_UTF8},
-
+    */
+    
+    /*
     {"KOI8-U", 0, 128, koi8_u},
     {"KOI8-R", 20866},
     {"HP-ROMAN8", 0, 96, roman8},
@@ -428,9 +429,9 @@ static const struct cp_list_item cp_list[] = {
     {"CP620 (Mazovia)", 0, 128, mazovia},
     {"CP819", 28591},
     {"CP878", 20866},
-
+    */
     {"Use font encoding", -1},
-
+    {"UTF-8", CP_UTF8},
     {0, 0}
 };
 
@@ -1122,7 +1123,7 @@ const char *cp_name(int codepage)
     static char buf[32];
 
     if (codepage == -1) {
-	sprintf(buf, "Use font encoding");
+	sprintf(buf, "UTF-8");
 	return buf;
     }
 

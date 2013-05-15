@@ -124,7 +124,7 @@ char const *cp_enumerate (int index)
 {
     int charset;
     if (index == 0)
-	return "Use font encoding";
+	return "UTF-8";
     charset = charset_localenc_nth(index-1);
     if (charset == CS_NONE)
 	return NULL;
@@ -134,6 +134,6 @@ char const *cp_enumerate (int index)
 char const *cp_name(int codepage)
 {
     if (codepage == CS_NONE)
-	return "Use font encoding";
+	return "UTF-8";
     return charset_to_localenc(codepage);
 }
