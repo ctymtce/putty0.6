@@ -1739,6 +1739,13 @@ void setup_config_box(struct controlbox *b, int midsession,
 			 HELPCTX(connection_username),
 			 dlg_stdeditbox_handler, I(offsetof(Config,username)),
 			 I(sizeof(((Config *)0)->username)));
+        
+        //cty add@20130515
+        ctrl_editbox(s, "Auto-login password", 'p', 50,
+			 HELPCTX(connection_password),
+			 dlg_stdeditbox_handler, I(offsetof(Config,password)),
+			 I(sizeof(((Config *)0)->username)))->editbox.password = 1;
+
 
 	    s = ctrl_getset(b, "Connection/Data", "term",
 			    "Terminal details");

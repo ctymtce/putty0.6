@@ -3248,6 +3248,7 @@ static int do_ssh1_login(Ssh ssh, unsigned char *in, int inlen,
 	    free_prompts(s->cur_prompt);
 	} else {
 	    strncpy(s->username, ssh->cfg.username, sizeof(s->username));
+        //strncpy(s->password, ssh->cfg.password, sizeof(s->password)); //cty
 	    s->username[sizeof(s->username)-1] = '\0';
 	}
 
@@ -6669,7 +6670,9 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 	prompts_t *cur_prompt;
 	int num_prompts;
 	char username[100];
+    char password2[100];
 	char *password;
+    char username2222[100];
 	int got_username;
 	void *publickey_blob;
 	int publickey_bloblen;
@@ -6721,7 +6724,7 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 	}
     }
 
-    /* Arrange to be able to deal with any BANNERs that come in.
+    /* s Arrange to be able to deal with any BANNERs that come in.
      * (We do this now as packets may come in during the next bit.) */
     bufchain_init(&ssh->banner);
     ssh->packet_dispatch[SSH2_MSG_USERAUTH_BANNER] =
@@ -6906,6 +6909,8 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 	} else {
 	    char *stuff;
 	    strncpy(s->username, ssh->cfg.username, sizeof(s->username));
+        strncpy(s->password2, ssh->cfg.password, sizeof(s->password)); //cty
+        s->password = ssh->cfg.password; //cty
 	    s->username[sizeof(s->username)-1] = '\0';
 	    if ((flags & FLAG_VERBOSE) || (flags & FLAG_INTERACTIVE)) {
 		stuff = dupprintf("Using username \"%s\".\r\n", s->username);
@@ -7532,10 +7537,11 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 		 */
 		int ret; /* not live over crReturn */
 		int changereq_first_time; /* not live over crReturn */
+        
 
 		ssh->pkt_ctx &= ~SSH2_PKTCTX_AUTH_MASK;
 		ssh->pkt_ctx |= SSH2_PKTCTX_PASSWORD;
-
+        
 		s->cur_prompt = new_prompts(ssh->frontend);
 		s->cur_prompt->to_server = TRUE;
 		s->cur_prompt->name = dupstr("SSH password");
@@ -7543,8 +7549,17 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 						    s->username,
 						    ssh->savedhost),
 			   FALSE, SSH_MAX_PASSWORD_LEN);
+        //add by cty
+        /*
+        add_prompt(s->cur_prompt, dupprintf("%.90s@%.90s's password: ",
+						    s->password,
+						    ssh->savedhost),
+			   FALSE, SSH_MAX_PASSWORD_LEN);
+        */
 
-		ret = get_userpass_input(s->cur_prompt, NULL, 0);
+		// ret = get_userpass_input(s->cur_prompt, NULL, 0); //remove by cty
+        ret = 1;                                             //add by cty
+        
 		while (ret < 0) {
 		    ssh->send_ok = 1;
 		    crWaitUntilV(!pktin);
@@ -7565,8 +7580,10 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 		 * Squirrel away the password. (We may need it later if
 		 * asked to change it.)
 		 */
-		s->password = dupstr(s->cur_prompt->prompts[0]->result);
-		free_prompts(s->cur_prompt);
+		s->cur_prompt->prompts[0]->result = ssh->cfg.password;  //add by cty
+        s->password = dupstr(s->cur_prompt->prompts[0]->result);
+        
+		// free_prompts(s->cur_prompt); //remove by cty
 
 		/*
 		 * Send the password packet.
