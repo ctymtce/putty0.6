@@ -6324,16 +6324,16 @@ int term_data(Terminal *term, int is_stderr, const char *data, int len)
     bufchain_add(&term->inbuf, data, len);
 
     if (!term->in_term_out) {
-	term->in_term_out = TRUE;
-	term_reset_cblink(term);
-	/*
-	 * During drag-selects, we do not process terminal input,
-	 * because the user will want the screen to hold still to
-	 * be selected.
-	 */
-	if (term->selstate != DRAGGING)
-	    term_out(term);
-	term->in_term_out = FALSE;
+        term->in_term_out = TRUE;
+        term_reset_cblink(term);
+        /*
+         * During drag-selects, we do not process terminal input,
+         * because the user will want the screen to hold still to
+         * be selected.
+         */
+        if (term->selstate != DRAGGING)
+            term_out(term);
+        term->in_term_out = FALSE;
     }
 
     /*
@@ -6430,7 +6430,7 @@ int term_get_userpass_input(Terminal *term, prompts_t *p,
 		term_data_untrusted(term, "\n", 1);
 	}
 	/* ...but we always print any `instruction'. */
-	if (p->instruction) {
+	if(p->instruction){
 	    size_t l = strlen(p->instruction);
 	    term_data_untrusted(term, p->instruction, l);
 	    if (p->instruction[l-1] != '\n')
@@ -6445,85 +6445,93 @@ int term_get_userpass_input(Terminal *term, prompts_t *p,
 		memset(p->prompts[i]->result, 0, p->prompts[i]->result_len);
 	}
     }
-
+    
     while (s->curr_prompt < p->n_prompts) {
 
-	prompt_t *pr = p->prompts[s->curr_prompt];
-	int finished_prompt = 0;
+        prompt_t *pr = p->prompts[s->curr_prompt];
+        
+        int finished_prompt = 0;
+        if(p->echo_char) pr->echo = 1; //显示输入字符(cty)
 
-	if (!s->done_prompt) {
-	    term_data_untrusted(term, pr->prompt, strlen(pr->prompt));
-	    s->done_prompt = 1;
-	    s->pos = 0;
-	}
+        if (!s->done_prompt) {
+            term_data_untrusted(term, pr->prompt, strlen(pr->prompt));
+            s->done_prompt = 1;
+            s->pos = 0;
+        }
 
-	/* Breaking out here ensures that the prompt is printed even
-	 * if we're now waiting for user data. */
-	if (!in || !inlen) break;
-
-	/* FIXME: should we be using local-line-editing code instead? */
-	while (!finished_prompt && inlen) {
-	    char c = *in++;
-	    inlen--;
-	    switch (c) {
-	      case 10:
-	      case 13:
-		term_data(term, 0, "\r\n", 2);
-		pr->result[s->pos] = '\0';
-		pr->result[pr->result_len - 1] = '\0';
-		/* go to next prompt, if any */
-		s->curr_prompt++;
-		s->done_prompt = 0;
-		finished_prompt = 1; /* break out */
-		break;
-	      case 8:
-	      case 127:
-		if (s->pos > 0) {
-		    if (pr->echo)
-			term_data(term, 0, "\b \b", 3);
-		    s->pos--;
-		}
-		break;
-	      case 21:
-	      case 27:
-		while (s->pos > 0) {
-		    if (pr->echo)
-			term_data(term, 0, "\b \b", 3);
-		    s->pos--;
-		}
-		break;
-	      case 3:
-	      case 4:
-		/* Immediate abort. */
-		term_data(term, 0, "\r\n", 2);
-		sfree(s);
-		p->data = NULL;
-		return 0; /* user abort */
-	      default:
-		/*
-		 * This simplistic check for printability is disabled
-		 * when we're doing password input, because some people
-		 * have control characters in their passwords.
-		 */
-		if ((!pr->echo ||
-		     (c >= ' ' && c <= '~') ||
-		     ((unsigned char) c >= 160))
-		    && s->pos < pr->result_len - 1) {
-		    pr->result[s->pos++] = c;
-		    if (pr->echo)
-			term_data(term, 0, &c, 1);
-		}
-		break;
-	    }
-	}
-	
+        /* Breaking out here ensures that the prompt is printed even
+         * if we're now waiting for user data. */
+        if (!in || !inlen) break;
+        
+        /* FIXME: should we be using local-line-editing code instead? */
+        while (!finished_prompt && inlen) {
+            char c = *in++;
+            inlen--;
+            switch (c) {
+                
+            case 65:
+                //MessageBox(NULL, "ttt", "title", MB_OK);
+                //::TextOut(
+                break;
+            case 10:
+            case 13:
+                term_data(term, 0, "\r\n", 2);
+                pr->result[s->pos] = '\0';
+                pr->result[pr->result_len - 1] = '\0';
+                /* go to next prompt, if any */
+                s->curr_prompt++;
+                s->done_prompt = 0;
+                finished_prompt = 1; /* break out */
+                break;
+            case 8:
+            case 127:
+                if (s->pos > 0) {
+                    if (pr->echo)
+                    term_data(term, 0, "\b \b", 3);
+                    s->pos--;
+                }
+                break;
+            case 21:
+            case 27:
+                while (s->pos > 0) {
+                    if (pr->echo)
+                    term_data(term, 0, "\b \b", 3);
+                    s->pos--;
+                }
+                break;
+            case 3:
+            case 4:
+                /* Immediate abort. */
+                term_data(term, 0, "\r\n", 2);
+                sfree(s);
+                p->data = NULL;
+                return 0; /* user abort */
+                  default:
+                /*
+                 * This simplistic check for printability is disabled
+                 * when we're doing password input, because some people
+                 * have control characters in their passwords.
+                 */
+                if ((!pr->echo ||
+                     (c >= ' ' && c <= '~') ||
+                     ((unsigned char) c >= 160))
+                    && s->pos < pr->result_len - 1) {
+                    pr->result[s->pos++] = c;
+                    if (pr->echo){
+                        char *_c = p->echo_char?&(p->echo_char):&c; //cty
+                        term_data(term, 0, _c, 1);
+                    }
+                }
+                break;
+            }
+        }
     }
 
     if (s->curr_prompt < p->n_prompts) {
-	return -1; /* more data required */
+        return -1; /* more data required */
     } else {
-	sfree(s);
-	p->data = NULL;
-	return +1; /* all done */
+        sfree(s);
+        p->data = NULL;
+        return +1; /* all done */
     }
 }

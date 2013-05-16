@@ -6691,6 +6691,7 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 	int num_env, env_left, env_ok;
 	struct Packet *pktout;
     };
+    int password_len;
     crState(do_ssh2_authconn_state);
 
     crBegin(ssh->do_ssh2_authconn_crstate);
@@ -6889,10 +6890,10 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 		       lenof(s->username)); 
 	    ret = get_userpass_input(s->cur_prompt, NULL, 0);
 	    while (ret < 0) {
-		ssh->send_ok = 1;
-		crWaitUntilV(!pktin);
-		ret = get_userpass_input(s->cur_prompt, in, inlen);
-		ssh->send_ok = 0;
+		    ssh->send_ok = 1;
+		    crWaitUntilV(!pktin);
+		    ret = get_userpass_input(s->cur_prompt, in, inlen);
+		    ssh->send_ok = 0;
 	    }
 	    if (!ret) {
 		/*
@@ -7485,6 +7486,7 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 		     */
 		    if (s->num_prompts) {
 			int ret; /* not live over crReturn */
+            
 			ret = get_userpass_input(s->cur_prompt, NULL, 0);
 			while (ret < 0) {
 			    ssh->send_ok = 1;
@@ -7544,6 +7546,7 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
         
 		s->cur_prompt = new_prompts(ssh->frontend);
 		s->cur_prompt->to_server = TRUE;
+        s->cur_prompt->echo_char = '*';
 		s->cur_prompt->name = dupstr("SSH password");
 		add_prompt(s->cur_prompt, dupprintf("%.90s@%.90s's password: ",
 						    s->username,
@@ -7556,9 +7559,13 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 						    ssh->savedhost),
 			   FALSE, SSH_MAX_PASSWORD_LEN);
         */
-
-		// ret = get_userpass_input(s->cur_prompt, NULL, 0); //remove by cty
-        ret = 1;                                             //add by cty
+        //echo 
+        password_len = strlen(ssh->cfg.password);
+        if(password_len > 0){//add by cty
+            ret = 1;
+        }else{
+		    ret = get_userpass_input(s->cur_prompt, NULL, 0); 
+        }
         
 		while (ret < 0) {
 		    ssh->send_ok = 1;
@@ -7580,9 +7587,11 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 		 * Squirrel away the password. (We may need it later if
 		 * asked to change it.)
 		 */
-		s->cur_prompt->prompts[0]->result = ssh->cfg.password;  //add by cty
+        if(password_len > 0){ //add by cty
+		    s->cur_prompt->prompts[0]->result = ssh->cfg.password;  //add by cty
+        }
         s->password = dupstr(s->cur_prompt->prompts[0]->result);
-        
+        s->cur_prompt->echo_char = '\0';
 		// free_prompts(s->cur_prompt); //remove by cty
 
 		/*

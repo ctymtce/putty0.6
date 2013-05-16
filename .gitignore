@@ -9,4 +9,5 @@ Debug/*
 *.dsp
 *.ncb
 *.def
-*.exe
+*.ilk
+*.pdb

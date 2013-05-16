@@ -93,7 +93,6 @@ void ldisc_update(void *frontend, int echo, int edit)
 {
     /* Update stdin read mode to reflect changes in line discipline. */
     DWORD mode;
-
     mode = ENABLE_PROCESSED_INPUT;
     if (echo)
 	mode = mode | ENABLE_ECHO_INPUT;

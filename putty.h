@@ -681,6 +681,7 @@ typedef struct {
     size_t n_prompts;
     prompt_t **prompts;
     void *frontend;
+    char echo_char;
     void *data;		/* slot for housekeeping data, managed by
 			 * get_userpass_input(); initially NULL */
 } prompts_t;

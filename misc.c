@@ -95,6 +95,7 @@ prompts_t *new_prompts(void *frontend)
     p->frontend = frontend;
     p->data = NULL;
     p->to_server = TRUE; /* to be on the safe side */
+    p->echo_char = '\0'; //add by cty
     p->name = p->instruction = NULL;
     p->name_reqd = p->instr_reqd = FALSE;
     return p;
